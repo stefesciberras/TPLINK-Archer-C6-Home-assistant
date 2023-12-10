@@ -1,0 +1,34 @@
+  internet_off_time_mon:
+    name: Monday
+    has_date: false
+    has_time: true
+
+  internet_off_time_tue:
+    name: Tuesday
+    has_date: false
+    has_time: true
+
+  internet_off_time_wed:
+    name: Wednesday
+    has_date: false
+    has_time: true
+
+  internet_off_time_thu:
+    name: Thursday
+    has_date: false
+    has_time: true
+
+  internet_off_time_fri:
+    name: Friday
+    has_date: false
+    has_time: true
+    
+  internet_off_time_sat:
+    name: Saturday
+    has_date: false
+    has_time: true
+
+  internet_off_time_sun:
+    name: Sunday
+    has_date: false
+    has_time: true
