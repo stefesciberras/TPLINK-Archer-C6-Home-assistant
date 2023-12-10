@@ -1,0 +1,9 @@
+TPLinkAPI:
+  module: TPLinkRouter
+  class: TPLinkRouterAPI
+  password: "*********"
+  host: "***.***.***.***"
+  
+InternetAllowance:
+  module: InternetScheduling
+  class: InternetAllowance
