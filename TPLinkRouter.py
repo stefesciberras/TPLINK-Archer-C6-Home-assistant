@@ -17,6 +17,10 @@ EVENT = "TPlinkRouter"
 
 _ON = "ON"
 _OFF = "OFF"
+RESET_ROUTER = "ResetRouter"
+
+RESET_ROUTER_LINK = "/admin/system?form=reboot"
+RESET_ROUTER_NOW = b"operation=write"
 
 ACCESS_CONTROL = "AccessControl"
 ACCESS_CONTROL_LINK = "/admin/access_control?form=enable"
@@ -34,9 +38,16 @@ class TPLinkRouterAPI(hass.Hass):
 
         self.host = self.args["host"]
         self.password = self.args["password"]
+
+        #create button for home assistant - when pressed, this will reset the router
+        if not self.entity_exists("button.reset_TPLINK_router"):
+            self.set_state("button.reset_TPLINK_router", state = "off", attributes = {"id": "reset_TPLINK_router"})
         
         self.listen_event(self._callback, EVENT)
         self.log ("TP-Link router Appdaemon running... Awaiting EVENT")
+        
+        self.listen_event(self._callbackResetRouter, event = "call_service")
+        
         
     def _callback (self, event_name, data, kwargs):
         # Check if we need to login. Call read opereation, if successful, login not necessary.
@@ -49,22 +60,35 @@ class TPLinkRouterAPI(hass.Hass):
             ep = "/admin/status?form=all"
             ret = self.send_encrypted_command(b"operation=read", ep)
         
-        # read out the aggregate status data
-        # self.log (ret)
-        
         # Check command and action
         self.action = data.get("action")
         command = data.get("command")
         
-        switcher = {
-            ACCESS_CONTROL: self.access_control (),
-        }
+        if command == ACCESS_CONTROL:
+            self.access_control ()
         
         print (switcher.get (command))
         
         self.log ("Logging out... ")
         print (self.send_encrypted_command(LOGOUT_COMMAND, LOGOUT_LINK))
         
+        return
+
+    def _callbackResetRouter (self, event_name, data, kwargs):
+        # callback to reset router. First check if entity is button.reset router, then act
+        entity_id = data.get("service_data").get("entity_id", None)
+        self.log(entity_id)
+        if entity_id != "button.reset_tplink_router":
+            self.log("Not resetting router")
+            return
+        # now reset router
+        self.log ("Router will be reset now")
+        
+        # Check if we need to login. Call read opereation, if successful, login not necessary.
+        self.check_login_status()
+        
+        ret = self.send_encrypted_command(RESET_ROUTER_NOW, RESET_ROUTER_LINK)
+        self.log("************************")
         return
     
     def default (self):
@@ -80,8 +104,20 @@ class TPLinkRouterAPI(hass.Hass):
         self.log("************************")
         self.log(ret)
         self.log("************************")
-
         return ret
+
+
+    def check_login_status (self):
+        try:
+            ep = "/admin/status?form=all"
+            ret = self.send_encrypted_command(b"operation=read", ep)
+        except:
+            print("Need to log in first...")
+            self.prelogin()
+            ep = "/admin/status?form=all"
+            ret = self.send_encrypted_command(b"operation=read", ep)
+        
+        return
         
         
     def prelogin (self):
